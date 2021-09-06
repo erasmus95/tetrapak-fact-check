@@ -7,7 +7,7 @@ Created on Thu May 20 17:58:26 2021
 
 """
 This program is designed to test all known US zipcodes against www.recylcecartons.com
-and find out where in the US you can actually recycle your tetrapak cartons.
+and find out where in the US you can actually recycle your Tetrapak cartons.
 
 The claim made by tetrapak is 60% of US households can recycle their cartons at the curb.
 To test this claim we will need both the valid zipcodes from www.recyclecartons.com,
@@ -19,7 +19,6 @@ Outputs:
     + Print the percent of the US population that can recycle cartons at the curb
 
 """
-import selenium
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import chromedriver_binary #adds chromedriver binary to path
@@ -37,12 +36,13 @@ driver.get("https://www.recyclecartons.com/find/state/?n=usa")
 #assert "Carton" in driver.title #assert can be used as a sanity check. Catch errors with try
 ##############################################################################
 #Open our source file in read mode to get the zipcodes and other columns
-with open("zip_code_database_p4.csv", newline='',mode= 'r') as zip_source:
+with open("zip_code_database.csv", newline='',mode= 'r') as zip_source:
     #Open/create an output file in write mode
-    with open("zip_results_p4.csv",newline='',mode='w') as zip_output:
+    with open("zip_results.csv",newline='',mode='w') as zip_output:
         #reader object, only reads in the zips from source
         zip_reader = csv.reader(zip_source,dialect='excel') 
         #Define the column names for the output file
+        #Update fieldnames to match the database file you are using
         fieldnames = ['zip','state','irs_estimated_population_2015','carton_recycling']
         #Writer object just for the output
         zip_writer = csv.DictWriter(zip_output, fieldnames= fieldnames, dialect='excel')
@@ -53,7 +53,7 @@ with open("zip_code_database_p4.csv", newline='',mode= 'r') as zip_source:
             #Now we loop through the zipcodes and see what we get
             for row in zip_reader:
                 #grabbing an element: ID > NAME > CLASS > TAG
-                #We are looking for the name "zip" 
+                #looking for the name "zip" 
                 if row[14]=="0": 
                     continue #skip row if no population
                 zip_enter = driver.find_element_by_name("zip")
@@ -61,23 +61,24 @@ with open("zip_code_database_p4.csv", newline='',mode= 'r') as zip_source:
                 zip_enter.send_keys(row[0].zfill(5))
                 zip_enter.send_keys(Keys.RETURN)
                 #wait an arbitrary amount of time
-                time.sleep(0.25)#could replace to wait for certain elements to appear
+                time.sleep(0.25) #could replace to wait for certain elements to appear
             
                 result = driver.find_element_by_xpath("/html/body/div[3]/div/h2[1]") #title found AKA Yes
                 result_short = 1
                 
-                #since both results were visible regardless of input check which result is true
+                #since both results are visible regardless of input, check which result is true
                 if len(result.text) == 0:
                     result = driver.find_element_by_xpath("/html/body/div[3]/div/h2[3]") #title AKA No
                     result_short = 0
-                    no_freq +=1
+                    no_freq +=1 #the frequency of not able to recycle goes up by 1
                 else:
-                    yes_freq += 1 
-                counter += 1
+                    yes_freq += 1 #the frequency of being able to recycle goes up by 1
+                counter += 1 #our internal counter goes up, we use this to pause every 250 entries
                 print(f"{counter}: {row[0]}: {result.text} - {result_short}")
                 
-        
+                #in our output file, write a row for this zipcode, the state, the pop., and the result
                 zip_writer.writerow({'zip': row[0],'state':row[6],'irs_estimated_population_2015':row[14],'carton_recycling':result_short})
+                
                 #time.sleep(0)
                 if counter == 250: 
                     time.sleep(60) 
@@ -86,6 +87,6 @@ with open("zip_code_database_p4.csv", newline='',mode= 'r') as zip_source:
             driver.close() #closes current tab
             driver.quit() #closes browser   
 coverage = yes_freq/counter *100
-print(f"Of the zip codes searched: {yes_freq}/{counter} or {coverage}% had curbside recycling available")            
+print(f"Of the zip codes searched: {yes_freq}/{counter} or {coverage}% had curbside Tetrapak recycling available")            
 driver.close() #closes current tab
 driver.quit() #closes browser
