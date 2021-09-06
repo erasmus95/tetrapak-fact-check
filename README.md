@@ -3,4 +3,5 @@ Fact checks Tetrapack's https://www.recyclecartons.com/ for all US zip codes and
 
 Dependencies:
 1. Selenium, https://www.selenium.dev/, https://pypi.org/project/selenium/
+  a. Chromedriver https://chromedriver.chromium.org/ 
 2. USA population by zipcode: https://www.unitedstateszipcodes.org/zip-code-database/
